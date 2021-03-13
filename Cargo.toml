@@ -1,0 +1,12 @@
+[package]
+name = "webe_bench"
+version = "0.1.0"
+authors = ["WebeWizard <justin.leis@webewizard.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+futures = "0.3.12"
+reqwest = "0.11.0"
+tokio = { version = "1.2.0", features = ["full"] }
