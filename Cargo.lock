@@ -1104,12 +1104,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "webe_args"
+version = "0.1.0"
+
+[[package]]
 name = "webe_bench"
 version = "0.1.0"
 dependencies = [
  "futures",
  "reqwest",
  "tokio",
+ "webe_args",
 ]
 
 [[package]]
