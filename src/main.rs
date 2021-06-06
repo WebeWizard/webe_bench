@@ -14,14 +14,15 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     // parse commandline arguments
     let bench_args = Arc::new(BenchArgs::new(args::prepare_args()));    
 
-    let shared_client = reqwest::Client::new();
+    //let shared_client = reqwest::Client::new();
 
     let shared_success_count = Arc::new(AtomicUsize::new(0));
     let shared_error_count = Arc::new(AtomicUsize::new(0));
 
     let start_time = Instant::now();
     for _i in 0..bench_args.concurrency {
-        let thread_shared_client = shared_client.clone();
+        //let thread_shared_client = shared_client.clone();
+        let thread_shared_client = reqwest::Client::new();
         let thread_succeeded = shared_success_count.clone();
         let thread_errored = shared_error_count.clone();
         let options = bench_args.clone();
