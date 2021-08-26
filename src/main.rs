@@ -6,6 +6,8 @@ use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Arc;
 use std::time::Instant;
 
+use tokio::time::{sleep, Duration};
+
 use args::BenchArgs;
 
 #[tokio::main]
@@ -46,6 +48,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
         < bench_args.total_requests
     {
         // TODO: somehow avoid this from getting completely stuck
+        sleep(Duration::from_millis(100)).await;
     }
 
     let elapsed_time = Instant::now() - start_time;
