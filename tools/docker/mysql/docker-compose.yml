@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  webe_bench_mysql:
+    container_name: webe_bench_${BENCH_ENV}
+    build: .
+    ports:
+      - "${MYSQL_PORT}:${MYSQL_PORT}"
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_ROOT_PASSWORD:  "${MYSQL_ROOT_PASSWORD}"
+    volumes:
+      - webe_bench_mysql:/var/lib/mysql
+      - "./init_sql/init.sql:/docker-entrypoint-initdb.d/1.sql"
+
+volumes:
+    webe_bench_mysql:
+      name: "webe_bench_mysql_${BENCH_ENV}"
