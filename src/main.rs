@@ -1,11 +1,13 @@
 mod args;
 
 use std::error::Error;
+use std::str::FromStr;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Arc;
 use std::time::Instant;
 
+use hyper::{Client, Uri};
 use tokio::time::{sleep, Duration};
 
 use args::BenchArgs;
@@ -21,16 +23,16 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
     let start_time = Instant::now();
     for _i in 0..bench_args.concurrency {
-        let thread_shared_client = reqwest::Client::new();
+        let thread_shared_client = Client::new();
         let thread_attempted = shared_attempt_count.clone();
         let thread_succeeded = shared_success_count.clone();
         let thread_errored = shared_error_count.clone();
         let options = bench_args.clone();
         tokio::spawn(async move {
-            let url = options.clone().url.clone();
+            let uri = Uri::from_str(&options.url).expect("Could not parse url");
             while thread_attempted.load(SeqCst) < options.total_requests {
                 thread_attempted.fetch_add(1, SeqCst);
-                match thread_shared_client.get(&url).send().await {
+                match thread_shared_client.get(uri.clone()).await {
                     Ok(_response) => {
                         // TODO: inspect response for success status code
                         thread_succeeded.fetch_add(1, SeqCst);
