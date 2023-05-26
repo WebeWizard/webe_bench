@@ -11,3 +11,6 @@ webe_args = { path = "../lib-webe/webe_args" }
 futures = "0.3.12"
 tokio = { version = "1.2.0", features = ["full"] }
 hyper = { version = "0.14.26", features = ["http1","client","tcp"] }
+mysql_async = "0.32.2"
+dotenvy = "0.15.7"
+webe_id = "0.2.0"

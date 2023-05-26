@@ -8,6 +8,8 @@ services:
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_ROOT_PASSWORD:  "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
     volumes:
       - webe_bench_mysql:/var/lib/mysql
       - "./init_sql/init.sql:/docker-entrypoint-initdb.d/1.sql"
