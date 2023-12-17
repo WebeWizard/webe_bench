@@ -1,18 +1,14 @@
 mod args;
 mod database;
 
-use std::{error::Error, alloc::System};
-use std::str::FromStr;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Arc;
 use std::time::SystemTime;
+use std::error::Error;
 
-use hyper::{Client, Uri};
-use tokio::{
-    sync::watch::error,
-    time::{sleep, Duration},
-};
+use reqwest;
+use tokio::time::{sleep, Duration};
 use webe_id::WebeIDFactory;
 
 use args::BenchArgs;
@@ -23,26 +19,28 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     // parse commandline arguments
     let bench_args = Arc::new(BenchArgs::new(args::prepare_args()));
 
+    let shared_client = reqwest::Client::new();
+    
     let shared_attempt_count = Arc::new(AtomicUsize::new(0));
     let shared_success_count = Arc::new(AtomicUsize::new(0));
     let shared_error_count = Arc::new(AtomicUsize::new(0));
 
-    let mut id_factory = WebeIDFactory::new(std::time::UNIX_EPOCH, 0).expect("Failed to build ID factory");
+    let mut id_factory =
+        WebeIDFactory::new(std::time::UNIX_EPOCH, 0).expect("Failed to build ID factory");
     let run_id = id_factory.next().expect("Failed to generate new ID");
     let id = id_factory.next().expect("Failed to generate new ID");
 
     let start_time = SystemTime::now();
     for _i in 0..bench_args.concurrency {
-        let thread_shared_client = Client::new();
+        let thread_shared_client = shared_client.clone();
         let thread_attempted = shared_attempt_count.clone();
         let thread_succeeded = shared_success_count.clone();
         let thread_errored = shared_error_count.clone();
         let options = bench_args.clone();
         tokio::spawn(async move {
-            let uri = Uri::from_str(&options.url).expect("Could not parse url");
             while thread_attempted.load(SeqCst) < options.total_requests {
                 thread_attempted.fetch_add(1, SeqCst);
-                match thread_shared_client.get(uri.clone()).await {
+                match thread_shared_client.get(options.url.as_str()).send().await {
                     Ok(_response) => {
                         // TODO: inspect response for success status code
                         thread_succeeded.fetch_add(1, SeqCst);
@@ -64,7 +62,9 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let finish_time = SystemTime::now();
-    let elapsed_time = finish_time.duration_since(start_time).expect("Error processesing sytem time");
+    let elapsed_time = finish_time
+        .duration_since(start_time)
+        .expect("Error processesing sytem time");
     let attempt_count = shared_attempt_count.load(SeqCst);
     let success_count = shared_success_count.load(SeqCst);
     let error_count = shared_error_count.load(SeqCst);
@@ -92,7 +92,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     println!("Success Requests/sec: {:.0}", req_per_sec);
 
     // upload results to database
-    database::upload_results(result).await;
+    // database::upload_results(result).await;
 
     Ok(())
 }
